@@ -1,50 +1,28 @@
-# memory-leak
+# Memory leak
 
-This README outlines the details of collaborating on this Ember application.
-A short introduction of this app could easily go here.
+According to [this page](https://github.com/ember-best-practices/memory-leak-examples), after any tests execution, there should be no "Container" object in heap snapshot. If there is one, it means there is a memory leak.
 
-## Prerequisites
+I believe I found one reproducible case.
 
-You will need the following things properly installed on your computer.
+"action" helper in hbs, when used via a test implemented with async/await will leak memory.
 
-* [Git](https://git-scm.com/)
-* [Node.js](https://nodejs.org/) (with NPM)
-* [Ember CLI](https://ember-cli.com/)
-* [PhantomJS](http://phantomjs.org/)
+This does not happen if the test is written in old style (with `waitFor`).
 
-## Installation
+## Reproduction steps
 
-* `git clone <repository-url>` this repository
-* `cd memory-leak`
-* `npm install`
+1. `yarn`
+2. `ember s`
+3. open Chrome browser
+4. visit "/tests"
+5. select "Acceptance | memory leak" module
+6. let the tests run
+7. open console, Memory tab
+8. Take heap snapshot
+9. Filter for "Container"
+10. There is a container object in heap
 
-## Running / Development
+There should not be a container object in heap at this point. It does not happen if "action" helper is not used, or if the test is not async/await.
 
-* `ember serve`
-* Visit your app at [http://localhost:4200](http://localhost:4200).
+As far as I was able to confirm, this happens for all version of `ember-source` from 2.11 to 2.18
 
-### Code Generators
-
-Make use of the many generators for code, try `ember help generate` for more details
-
-### Running Tests
-
-* `ember test`
-* `ember test --server`
-
-### Building
-
-* `ember build` (development)
-* `ember build --environment production` (production)
-
-### Deploying
-
-Specify what it takes to deploy your app.
-
-## Further Reading / Useful Links
-
-* [ember.js](http://emberjs.com/)
-* [ember-cli](https://ember-cli.com/)
-* Development Browser Extensions
-  * [ember inspector for chrome](https://chrome.google.com/webstore/detail/ember-inspector/bmdblncegkenkacieihfhpjfppoconhi)
-  * [ember inspector for firefox](https://addons.mozilla.org/en-US/firefox/addon/ember-inspector/)
+In my application there is more than 1300 tests, compiling a lot of templates in which we use `{{action "actionName"}}`, all tests async. This seems to add to a lot of leaked memory.
