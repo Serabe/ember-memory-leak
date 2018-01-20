@@ -23,6 +23,6 @@ This does not happen if the test is written in old style (with `waitFor`).
 
 There should not be a container object in heap at this point. It does not happen if "action" helper is not used, or if the test is not async/await.
 
-As far as I was able to confirm, this happens for all version of `ember-source` from 2.11 to 2.18
+As far as I was able to confirm, this happens for all version of `ember-source` from 2.11 to 2.18, also on 3.0.0-beta.3.
 
 In my application there is more than 1300 tests, compiling a lot of templates in which we use `{{action "actionName"}}`, all tests async. This seems to add to a lot of leaked memory.
